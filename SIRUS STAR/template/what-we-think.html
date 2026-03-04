@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crypto AI — What We Think</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Space+Grotesk:wght@600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg-1: #05051a;
+      --bg-2: #071033;
+      --accent: #f9d71c;
+      --muted: rgba(255, 255, 255, 0.72);
+      --card: rgba(255, 255, 255, 0.03);
+      --ease: cubic-bezier(.2, .9, .2, 1);
+      --nav-height: 72px;
+      --maxw: 1200px;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(180deg, var(--bg-1), var(--bg-2));
+      color: #e8eef8;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    #scroll-progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      z-index: 9999;
+      background: linear-gradient(90deg, var(--accent), #ff6bba, #5ef6ff);
+      width: 0%;
+      box-shadow: 0 0 10px var(--accent);
+    }
+
+    .cursor-dot,
+    .cursor-outline {
+      position: fixed;
+      pointer-events: none;
+      z-index: 99999;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .cursor-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      box-shadow: 0 0 15px var(--accent);
+    }
+
+    .cursor-outline {
+      width: 40px;
+      height: 40px;
+      border: 2px solid rgba(249, 215, 28, 0.6);
+      transition: all 0.15s var(--ease);
+    }
+
+    #starfield {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .nebula {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      mix-blend-mode: screen;
+      opacity: 0.6;
+      pointer-events: none;
+      background: radial-gradient(600px 400px at 10% 20%, rgba(127, 114, 255, 0.12), transparent 8%), radial-gradient(500px 300px at 80% 70%, rgba(18, 226, 255, 0.06), transparent 12%);
+      animation: nebulaShift 16s linear infinite;
+    }
+
+    @keyframes nebulaShift {
+
+      0%,
+      100% {
+        transform: translateY(0) scale(1)
+      }
+
+      50% {
+        transform: translateY(-30px) translateX(20px) scale(1.02)
+      }
+    }
+
+    #neuralCanvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .parallax-layer {
+      position: fixed;
+      z-index: 2;
+      pointer-events: none;
+      will-change: transform;
+    }
+
+    .planet-1 {
+      width: 220px;
+      height: 220px;
+      top: 8%;
+      left: 2%;
+      background: radial-gradient(circle at 30% 30%, rgba(57, 117, 255, 0.25), transparent 70%);
+      border-radius: 50%;
+      box-shadow: 0 0 120px rgba(57, 117, 255, 0.25);
+    }
+
+    .planet-2 {
+      width: 140px;
+      height: 140px;
+      top: 40%;
+      right: 3%;
+      background: radial-gradient(circle at 40% 40%, rgba(249, 215, 28, 0.2), transparent 70%);
+      border-radius: 50%;
+      box-shadow: 0 0 80px rgba(249, 215, 28, 0.2);
+    }
+
+    .asteroid-1 {
+      width: 70px;
+      height: 70px;
+      top: 65%;
+      left: 8%;
+      background: radial-gradient(circle at 30% 30%, rgba(200, 200, 255, 0.12), transparent 70%);
+      border-radius: 35% 65% 70% 30%/30% 30% 70% 70%;
+      animation: floatAst 25s infinite alternate;
+    }
+
+    @keyframes floatAst {
+
+      0%,
+      100% {
+        transform: translate(0, 0) rotate(0)
+      }
+
+      50% {
+        transform: translate(40px, -50px) rotate(15deg)
+      }
+    }
+
+    .topnav {
+      position: fixed;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: var(--nav-height);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 100;
+      padding: 12px 40px;
+      background: rgba(5, 5, 26, 0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .topnav.scrolled {
+      border-bottom-color: rgba(249, 215, 28, 0.12);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      font-weight: 500;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 15px;
+      transition: color 0.2s;
+      position: relative;
+      padding-bottom: 4px;
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--accent);
+      transition: width 0.3s var(--ease);
+      border-radius: 2px;
+    }
+
+    .nav-links a:hover {
+      color: white;
+    }
+
+    .nav-links a:hover::after,
+    .nav-links a.active::after {
+      width: 100%;
+    }
+
+    .nav-links a.active {
+      color: var(--accent);
+    }
+
+    .brand-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+    }
+
+    .brand-left .logo {
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #13213a, #081022);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+    }
+
+    .brand-left .brand-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      color: var(--accent);
+      font-size: 1.3rem;
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.7s var(--ease), transform 0.7s var(--ease);
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* HERO */
+    .page-hero {
+      min-height: 55vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: calc(var(--nav-height)+60px) 40px 60px;
+      position: relative;
+      z-index: 10;
+      text-align: center;
+    }
+
+    .page-eyebrow {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      color: var(--accent);
+      margin-bottom: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .page-eyebrow::before,
+    .page-eyebrow::after {
+      content: '';
+      width: 24px;
+      height: 2px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+
+    .page-hero h1 {
+      font-size: clamp(42px, 7vw, 86px);
+      font-family: 'Space Grotesk', sans-serif;
+      color: white;
+      line-height: 1.08;
+      margin-bottom: 22px;
+    }
+
+    .page-hero h1 span {
+      color: var(--accent);
+    }
+
+    .page-hero p {
+      font-size: 18px;
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* STATS */
+    .stats-row {
+      display: flex;
+      max-width: var(--maxw);
+      margin: 0 auto;
+      flex-wrap: wrap;
+      position: relative;
+      z-index: 10;
+      padding: 0 40px;
+    }
+
+    .stat-box {
+      flex: 1;
+      min-width: 160px;
+      text-align: center;
+      padding: 36px 20px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-left: none;
+      background: rgba(255, 255, 255, 0.02);
+      backdrop-filter: blur(10px);
+      transition: background 0.3s;
+    }
+
+    .stat-box:first-child {
+      border-left: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 16px 0 0 16px;
+    }
+
+    .stat-box:last-child {
+      border-radius: 0 16px 16px 0;
+    }
+
+    .stat-box:hover {
+      background: rgba(249, 215, 28, 0.04);
+    }
+
+    .stat-num {
+      font-size: 46px;
+      font-weight: 700;
+      color: var(--accent);
+      font-family: 'Space Grotesk', sans-serif;
+      line-height: 1;
+    }
+
+    .stat-lbl {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    /* QUOTE */
+    .quote-section {
+      max-width: 900px;
+      margin: 80px auto;
+      padding: 0 40px;
+      text-align: center;
+      position: relative;
+      z-index: 10;
+    }
+
+    .big-quote {
+      font-size: clamp(20px, 3vw, 34px);
+      font-family: 'Space Grotesk', sans-serif;
+      color: white;
+      line-height: 1.4;
+      padding: 40px;
+      position: relative;
+    }
+
+    .big-quote::before {
+      content: '"';
+      position: absolute;
+      top: -10px;
+      left: 20px;
+      font-size: 120px;
+      color: rgba(249, 215, 28, 0.07);
+      font-family: Georgia, serif;
+      line-height: 1;
+    }
+
+    .big-quote em {
+      color: var(--accent);
+      font-style: normal;
+    }
+
+    .big-quote-attr {
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 16px;
+    }
+
+    /* TABS */
+    .tabs-wrap {
+      max-width: var(--maxw);
+      margin: 80px auto;
+      padding: 0 40px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .section-tag {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: clamp(26px, 4vw, 42px);
+      font-family: 'Space Grotesk', sans-serif;
+      color: white;
+      line-height: 1.2;
+      margin-bottom: 36px;
+    }
+
+    .tab-nav {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 36px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      padding: 12px 24px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: none;
+      border-bottom: 2px solid transparent;
+      transition: all 0.25s;
+      margin-bottom: -1px;
+      font-family: 'Inter', sans-serif;
+      border-radius: 8px 8px 0 0;
+    }
+
+    .tab-btn:hover {
+      color: white;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .tab-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    .tab-pane {
+      display: none;
+      animation: tabFade 0.4s var(--ease);
+    }
+
+    .tab-pane.active {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 28px;
+    }
+
+    @keyframes tabFade {
+      from {
+        opacity: 0;
+        transform: translateY(12px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    .thought-card {
+      background: var(--card);
+      backdrop-filter: blur(12px);
+      border-radius: 20px;
+      padding: 32px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      transition: all 0.35s var(--ease);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .thought-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .thought-card:hover {
+      transform: translateY(-8px);
+      border-color: rgba(249, 215, 28, 0.25);
+      box-shadow: 0 20px 44px rgba(0, 0, 0, 0.5);
+    }
+
+    .thought-card:hover::before {
+      opacity: 1;
+    }
+
+    .thought-icon {
+      font-size: 40px;
+      margin-bottom: 18px;
+    }
+
+    .thought-card h3 {
+      font-size: 20px;
+      font-family: 'Space Grotesk', sans-serif;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    .thought-card p {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    /* TIMELINE */
+    .content-section {
+      max-width: var(--maxw);
+      margin: 80px auto;
+      padding: 0 40px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .section-header {
+      margin-bottom: 50px;
+    }
+
+    .timeline {
+      position: relative;
+      padding-left: 40px;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 12px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(180deg, var(--accent), rgba(249, 215, 28, 0.08));
+    }
+
+    .tl-item {
+      position: relative;
+      margin-bottom: 48px;
+    }
+
+    .tl-dot {
+      position: absolute;
+      left: -40px;
+      top: 6px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      background: var(--bg-1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: var(--accent);
+      transition: all 0.3s;
+    }
+
+    .tl-item:hover .tl-dot {
+      background: var(--accent);
+      color: #08102a;
+      box-shadow: 0 0 20px rgba(249, 215, 28, 0.5);
+    }
+
+    .tl-date {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--accent);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .tl-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 8px;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    .tl-desc {
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 15px;
+    }
+
+    footer {
+      padding: 50px 40px;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.45);
+      position: relative;
+      z-index: 10;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    @media(max-width:860px) {
+      .nav-links {
+        display: none;
+      }
+
+      .stats-row {
+        flex-direction: column;
+        row-gap: 8px;
+      }
+
+      .stat-box {
+        border-left: 1px solid rgba(255, 255, 255, 0.06) !important;
+        border-radius: 12px !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="scroll-progress"></div>
+  <div class="cursor-dot"></div>
+  <div class="cursor-outline"></div>
+  <canvas id="starfield"></canvas>
+  <div class="nebula"></div>
+  <canvas id="neuralCanvas"></canvas>
+  <div class="parallax-layer planet-1" data-depth="0.08"></div>
+  <div class="parallax-layer planet-2" data-depth="0.15"></div>
+  <div class="parallax-layer asteroid-1" data-depth="0.25"></div>
+  <nav class="topnav" id="topnav">
+    <a class="brand-left" href="/">
+      <div class="logo"><svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+          <defs>
+            <linearGradient id="g" x1="0" x2="1">
+              <stop offset="0" stop-color="#f9d71c" />
+              <stop offset="1" stop-color="#ffd24a" />
+            </linearGradient>
+          </defs>
+          <path d="M12 2l1.902 4.856L19 8.18l-4 3.094.944 5.4L12 14.9 8.056 16.674 9 11.274 5 8.18l5.098-1.324L12 2z"
+            fill="url(#g)" />
+        </svg></div>
+      <div class="brand-title">CRYPTO AI</div>
+    </a>
+    <div class="nav-links">
+      <a href="/what-we-think" class="active">What we think</a>
+      <a href="/who-we-are">Who we are</a>
+      <a href="/careers">Careers</a>
+      <a href="/founder" style="color:var(--accent)">Founder</a>
+    </div>
+    <div style="display:flex;gap:20px;color:var(--muted);font-size:14px;"><span>Search</span><span>India</span></div>
+  </nav>
+  <div class="page-hero">
+    <div class="reveal" style="max-width:800px;margin:0 auto;">
+      <div class="page-eyebrow">Our Research & Philosophy</div>
+      <h1>What We <span>Think</span></h1>
+      <p>We believe AI will fundamentally redefine how markets operate — and we're building the systems to make it
+        happen, one layer at a time.</p>
+    </div>
+  </div>
+  <div style="position:relative;z-index:10;padding:0 40px;">
+    <div class="stats-row reveal">
+      <div class="stat-box">
+        <div class="stat-num" data-target="89" data-suffix="%">0%</div>
+        <div class="stat-lbl">Prediction Accuracy</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" data-target="10" data-suffix="μs">0μs</div>
+        <div class="stat-lbl">Inference Latency</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" data-target="200" data-suffix="M">0M</div>
+        <div class="stat-lbl">Model Parameters</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" data-target="92" data-suffix="%">0%</div>
+        <div class="stat-lbl">Sharpe Ratio</div>
+      </div>
+    </div>
+  </div>
+  <div class="quote-section">
+    <div class="big-quote reveal">"Markets are not random — they are <em>high-dimensional patterns</em> waiting for the
+      right model to decode them."<div class="big-quote-attr">— Crypto AI Research Team</div>
+    </div>
+  </div>
+  <div class="tabs-wrap">
+    <div class="reveal">
+      <div class="section-tag">Research Areas</div>
+      <div class="section-title">Where We Focus Our Thinking</div>
+    </div>
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab(this,'tab-ai')">🧠 Trading AI</button>
+      <button class="tab-btn" onclick="switchTab(this,'tab-cloud')">☁️ Cloud & MLOps</button>
+      <button class="tab-btn" onclick="switchTab(this,'tab-llm')">🤖 LLMs</button>
+    </div>
+    <div id="tab-ai" class="tab-pane active">
+      <div class="thought-card">
+        <div class="thought-icon">📈</div>
+        <h3>Order Flow Prediction</h3>
+        <p>Self-supervised transformers trained on NASDAQ ITCH data predict buy/sell pressure 15s ahead with 89%
+          directional accuracy.</p>
+      </div>
+      <div class="thought-card">
+        <div class="thought-icon">⚡</div>
+        <h3>10μs Inference</h3>
+        <p>TorchScript + ONNX + C++ backend for latency-critical execution in high-frequency environments.</p>
+      </div>
+      <div class="thought-card">
+        <div class="thought-icon">🎯</div>
+        <h3>Autonomous Risk Management</h3>
+        <p>RL-based position sizing that adapts to market regimes, outperforming fixed Kelly Criterion models.</p>
+      </div>
+    </div>
+    <div id="tab-cloud" class="tab-pane">
+      <div class="thought-card">
+        <div class="thought-icon">🔧</div>
+        <h3>Distributed Training</h3>
+        <p>Multi-GPU training on GCP Vertex AI with custom FSDP sharding for 200M+ parameter financial models.</p>
+      </div>
+      <div class="thought-card">
+        <div class="thought-icon">🚀</div>
+        <h3>MLOps Pipeline</h3>
+        <p>CI/CD for ML: Kubeflow Pipelines, MLflow tracking, automated retraining on data drift detection.</p>
+      </div>
+      <div class="thought-card">
+        <div class="thought-icon">📦</div>
+        <h3>Containerized Inference</h3>
+        <p>Docker + Kubernetes deployment with blue-green strategies for zero-downtime model updates.</p>
+      </div>
+    </div>
+    <div id="tab-llm" class="tab-pane">
+      <div class="thought-card">
+        <div class="thought-icon">💬</div>
+        <h3>Financial LLMs</h3>
+        <p>Fine-tuning LLaMA-3 on 10 years of earnings transcripts, analyst reports, and SEC filings for sentiment
+          analysis.</p>
+      </div>
+      <div class="thought-card">
+        <div class="thought-icon">🔗</div>
+        <h3>Agentic Reasoning</h3>
+        <p>LLM agents that autonomously browse news, generate hypotheses, backtest strategies, and suggest trades.</p>
+      </div>
+      <div class="thought-card">
+        <div class="thought-icon">🧩</div>
+        <h3>RAG for Markets</h3>
+        <p>Retrieval-augmented generation over 50M+ market events for contextual trade decision support.</p>
+      </div>
+    </div>
+  </div>
+  <div class="content-section">
+    <div class="section-header reveal">
+      <div class="section-tag">Research Roadmap</div>
+      <div class="section-title">Our Journey in AI Markets</div>
+    </div>
+    <div class="timeline">
+      <div class="tl-item reveal">
+        <div class="tl-dot">✓</div>
+        <div class="tl-date">EARLY 2024 · Ideation</div>
+        <div class="tl-title">The Idea is Born</div>
+        <div class="tl-desc">Identified the gap in retail access to institutional-grade AI trading. Started studying
+          limit order book dynamics.</div>
+      </div>
+      <div class="tl-item reveal">
+        <div class="tl-dot">✓</div>
+        <div class="tl-date">LATE 2025 · Research</div>
+        <div class="tl-title">IIT Presentation </div>
+        <div class="tl-desc">Focusing on Hackathons based on AI/ML, Blockchain, cybersecurity to present in IITs and NITs</div>
+      </div>
+      <div class="tl-item reveal">
+        <div class="tl-dot">★</div>
+        <div class="tl-date"> 2026 · Breakthrough</div>
+        <div class="tl-title">Transformer — 89% Accuracy</div>
+        <div class="tl-desc">Self-supervised pre-training on NASDAQ ITCH unlocked the 89% milestone. Latency reduced to
+          10μs.</div>
+      </div>
+      <div class="tl-item reveal">
+        <div class="tl-dot">◎</div>
+        <div class="tl-date">PRESENT · Refinement</div>
+        <div class="tl-title">LLM Integration & Agentic Layer</div>
+        <div class="tl-desc">Building LLM reasoning on top of the prediction engine. Autonomous agents that read news
+          and adjust risk.</div>
+      </div>
+      <div class="tl-item reveal">
+        <div class="tl-dot">◻</div>
+        <div class="tl-date">FUTURE · Launch</div>
+        <div class="tl-title">Startup Deployment</div>
+        <div class="tl-desc">IIT/ Top Company partnership for supervised live deployment. Open-source release of the core
+          prediction engine.</div>
+      </div>
+    </div>
+  </div>
+  <footer>
+    <p>© <span id="year"></span> <a href="/">Crypto AI</a> — Mohana Krishnan</p>
+    <p style="margin-top:10px;font-size:13px;"><a href="/">Home</a> &nbsp;·&nbsp; <a href="/who-we-are">Who we are</a>
+      &nbsp;·&nbsp; <a href="/careers">Careers</a> &nbsp;·&nbsp; <a href="/founder">Founder</a></p>
+  </footer>
+  <script>
+    (function () { const c = document.getElementById('starfield'); const ctx = c.getContext('2d'); let s = [], w, h; function rand(a, b) { return Math.random() * (b - a) + a; } function init() { w = c.width = innerWidth; h = c.height = innerHeight; const N = Math.floor((w * h) / 8000); s = []; for (let i = 0; i < N; i++)s.push({ x: rand(0, w), y: rand(0, h), r: rand(0.3, 1.8), vx: rand(-0.06, 0.06), vy: rand(0.15, 0.55), tw: Math.random() * Math.PI * 2 }); } addEventListener('resize', init); init(); function draw() { ctx.clearRect(0, 0, w, h); for (let p of s) { p.x += p.vx; p.y += p.vy; p.tw += 0.04; if (p.y > h + 10) { p.y = -5; p.x = rand(0, w); } if (p.x < -10) p.x = w + 5; if (p.x > w + 10) p.x = -5; const a = 0.35 + 0.65 * Math.sin(p.tw); ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fillStyle = `rgba(255,255,255,${a})`; ctx.fill(); } requestAnimationFrame(draw); } draw(); })();
+    (function () { const c = document.getElementById('neuralCanvas'); const ctx = c.getContext('2d'); let w, h, nodes = []; function resize() { w = c.width = innerWidth; h = c.height = innerHeight; } resize(); addEventListener('resize', resize); for (let i = 0; i < 40; i++)nodes.push({ x: Math.random() * w, y: Math.random() * h, vx: (Math.random() - 0.5) * 0.5, vy: (Math.random() - 0.5) * 0.5, r: 1.5 + Math.random() * 3 }); function draw() { ctx.clearRect(0, 0, w, h); for (let i = 0; i < nodes.length; i++) { for (let j = i + 1; j < nodes.length; j++) { const dx = nodes[i].x - nodes[j].x, dy = nodes[i].y - nodes[j].y, dist = Math.sqrt(dx * dx + dy * dy); if (dist < 150) { ctx.beginPath(); ctx.moveTo(nodes[i].x, nodes[i].y); ctx.lineTo(nodes[j].x, nodes[j].y); ctx.strokeStyle = `rgba(249,215,28,${0.15 * (1 - dist / 150)})`; ctx.stroke(); } } ctx.beginPath(); ctx.arc(nodes[i].x, nodes[i].y, nodes[i].r, 0, Math.PI * 2); ctx.fillStyle = 'rgba(249,215,28,0.6)'; ctx.shadowColor = '#f9d71c'; ctx.shadowBlur = 8; ctx.fill(); ctx.shadowBlur = 0; } nodes.forEach(n => { n.x += n.vx; n.y += n.vy; if (n.x < 0 || n.x > w) n.vx *= -1; if (n.y < 0 || n.y > h) n.vy *= -1; }); requestAnimationFrame(draw); } draw(); })();
+    document.addEventListener('DOMContentLoaded', function () {
+      document.getElementById('year').textContent = new Date().getFullYear();
+      const dot = document.querySelector('.cursor-dot'), outline = document.querySelector('.cursor-outline');
+      let mx = 0, my = 0, ox = 0, oy = 0, hue = 45;
+      document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; dot.style.left = mx + 'px'; dot.style.top = my + 'px'; hue = (hue + 0.6) % 360; dot.style.background = `hsl(${hue},90%,60%)`; dot.style.boxShadow = `0 0 15px hsl(${hue},90%,60%)`; outline.style.borderColor = `hsla(${hue},80%,60%,0.6)`; });
+      (function a() { ox += (mx - ox) * 0.12; oy += (my - oy) * 0.12; outline.style.left = ox + 'px'; outline.style.top = oy + 'px'; requestAnimationFrame(a); })();
+      document.querySelectorAll('a,button,.thought-card').forEach(el => { el.addEventListener('mouseenter', () => { outline.style.transform = 'translate(-50%,-50%) scale(1.6)'; dot.style.transform = 'translate(-50%,-50%) scale(1.8)'; }); el.addEventListener('mouseleave', () => { outline.style.transform = 'translate(-50%,-50%) scale(1)'; dot.style.transform = 'translate(-50%,-50%) scale(1)'; }); });
+      const prog = document.getElementById('scroll-progress');
+      window.addEventListener('scroll', () => { const s = document.documentElement.scrollTop; const h = document.documentElement.scrollHeight - document.documentElement.clientHeight; prog.style.width = (s / h * 100) + '%'; });
+      const nav = document.getElementById('topnav'); window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 50));
+      const layers = document.querySelectorAll('.parallax-layer'); let mpx = 0, mpy = 0;
+      document.addEventListener('mousemove', e => { mpx = (e.clientX / innerWidth - 0.5) * 30; mpy = (e.clientY / innerHeight - 0.5) * 20; });
+      function updateP() { const st = window.pageYOffset; layers.forEach(el => { const d = parseFloat(el.getAttribute('data-depth') || 0.1); el.style.transform = `translate3d(${mpx * d * 2}px,${mpy * d * 2 - st * d}px,0)`; }); requestAnimationFrame(updateP); } updateP();
+      const io = new IntersectionObserver(entries => entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } }), { threshold: 0.12 });
+      document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+      const statIO = new IntersectionObserver(entries => { entries.forEach(e => { if (e.isIntersecting) { const el = e.target; const target = parseInt(el.getAttribute('data-target')); const suffix = el.getAttribute('data-suffix') || ''; let current = 0; const step = target / 60; const interval = setInterval(() => { current = Math.min(current + step, target); el.textContent = Math.round(current) + suffix; if (current >= target) clearInterval(interval); }, 16); statIO.unobserve(el); } }); }, { threshold: 0.5 });
+      document.querySelectorAll('.stat-num[data-target]').forEach(el => statIO.observe(el));
+      window.switchTab = function (btn, tabId) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active')); btn.classList.add('active'); document.getElementById(tabId).classList.add('active'); };
+      document.querySelectorAll('.thought-card').forEach(card => { card.addEventListener('mousemove', e => { const r = card.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width - 0.5; const y = (e.clientY - r.top) / r.height - 0.5; card.style.transform = `perspective(600px) rotateY(${x * 12}deg) rotateX(${-y * 8}deg) translateY(-8px)`; }); card.addEventListener('mouseleave', () => { card.style.transform = ''; }); });
+    });
+  </script>
+</body>
+
+</html>

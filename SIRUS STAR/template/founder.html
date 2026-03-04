@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crypto AI — Mohana Krishnan</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Space+Grotesk:wght@600&display=swap"
+    rel="stylesheet">
+  <style>
+    /* ========== ROOT VARIABLES ========== */
+    :root {
+      --bg-1: #05051a;
+      --bg-2: #071033;
+      --accent: #f9d71c;
+      --muted: rgba(255, 255, 255, 0.75);
+      --glass: rgba(255, 255, 255, 0.04);
+      --card: rgba(255, 255, 255, 0.03);
+      --radius: 14px;
+      --maxw: 1200px;
+      --ease: cubic-bezier(.2, .9, .2, 1);
+      --nav-height: 72px;
+      /* Dynamic Cursor Variables */
+      --c-hue: 45;
+      --c-main: hsl(var(--c-hue), 90%, 60%);
+      --c-alpha: hsla(var(--c-hue), 80%, 60%, 0.5);
+      --c-light: hsla(var(--c-hue), 80%, 60%, 0.15);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(180deg, var(--bg-1), var(--bg-2));
+      color: #e8eef8;
+      overflow-x: hidden;
+      cursor: none;
+      /* Hide default cursor */
+    }
+
+    /* ========== DYNAMIC CURSOR ========== */
+    .cursor-dot,
+    .cursor-outline,
+    .cursor-trail {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 99999;
+      border-radius: 50%;
+      will-change: transform;
+    }
+
+    .cursor-dot {
+      width: 6px;
+      height: 6px;
+      background: #fff;
+      box-shadow: 0 0 10px #fff, 0 0 20px var(--c-main);
+      z-index: 99999;
+    }
+
+    .cursor-outline {
+      width: 40px;
+      height: 40px;
+      border: 1.5px solid var(--c-alpha);
+      box-shadow: 0 0 20px var(--c-light), inset 0 0 10px var(--c-light);
+      z-index: 99998;
+      transition: width 0.3s var(--ease), height 0.3s var(--ease), background-color 0.3s var(--ease);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Targeting Reticle inside outline */
+    .cursor-outline::before {
+      content: '';
+      position: absolute;
+      width: calc(100% + 16px);
+      height: calc(100% + 16px);
+      border: 1.5px dashed var(--c-main);
+      border-radius: 50%;
+      opacity: 0;
+      transition: opacity 0.3s var(--ease);
+      animation: spin 4s linear infinite;
+    }
+
+    .cursor-trail {
+      width: 10px;
+      height: 10px;
+      background: var(--c-alpha);
+      filter: blur(2px);
+      z-index: 99997;
+    }
+
+    /* Hover State */
+    .cursor-hovering {
+      width: 65px;
+      height: 65px;
+      background-color: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(3px);
+      border-color: transparent;
+      box-shadow: 0 0 30px var(--c-light);
+    }
+
+    .cursor-hovering::before {
+      opacity: 0.8;
+      animation: spin 2s linear infinite;
+    }
+
+    @keyframes spin {
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Hide custom cursor on touch devices */
+    @media (pointer: coarse) {
+      body {
+        cursor: auto;
+      }
+
+      .cursor-dot,
+      .cursor-outline,
+      .cursor-trail {
+        display: none !important;
+      }
+    }
+
+    /* ========== NAVIGATION ========== */
+    @keyframes floatAst {
+
+      0%,
+      100% {
+        transform: translate(0, 0) rotate(0)
+      }
+
+      50% {
+        transform: translate(40px, -50px) rotate(15deg)
+      }
+    }
+
+    .topnav {
+      position: fixed;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: var(--nav-height);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 100;
+      padding: 12px 40px;
+      background: rgba(5, 5, 26, 0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      transition: border-color 0.3s;
+    }
+
+    .topnav.scrolled {
+      border-bottom-color: rgba(249, 215, 28, 0.12);
+    }
+
+    /* SCROLL REVEAL */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.7s cubic-bezier(.2, .9, .2, 1), transform 0.7s cubic-bezier(.2, .9, .2, 1);
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* NAV UNDERLINE */
+    .nav-links a {
+      position: relative;
+      padding-bottom: 4px;
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--accent);
+      transition: width 0.3s cubic-bezier(.2, .9, .2, 1);
+      border-radius: 2px;
+    }
+
+    .nav-links a:hover::after,
+    .nav-links a.active::after {
+      width: 100%;
+    }
+
+    /* VISION CARD GLOW */
+    .vision-card {
+      animation: visionPulse 4s ease-in-out infinite;
+    }
+
+    @keyframes visionPulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 30px rgba(249, 215, 28, 0.1)
+      }
+
+      50% {
+        box-shadow: 0 0 60px rgba(249, 215, 28, 0.25), 0 20px 60px rgba(0, 0, 0, 0.5)
+      }
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      font-weight: 500;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 15px;
+      letter-spacing: 0.5px;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: white;
+    }
+
+    .nav-links a.active {
+      color: var(--accent);
+    }
+
+    .brand-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-left .brand-title {
+      font-family: 'Space Grotesk', Inter;
+      font-weight: 700;
+      color: var(--accent);
+      font-size: 1.3rem;
+    }
+
+    /* ========== STARFIELD ========== */
+    #starfield {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .nebula {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      mix-blend-mode: screen;
+      opacity: 0.6;
+      pointer-events: none;
+      background: radial-gradient(600px 400px at 10% 20%, rgba(127, 114, 255, 0.12), transparent 8%),
+        radial-gradient(500px 300px at 80% 70%, rgba(18, 226, 255, 0.06), transparent 12%);
+      animation: nebulaShift 16s linear infinite;
+    }
+
+    @keyframes nebulaShift {
+      0% {
+        transform: translateY(0) translateX(0) scale(1);
+      }
+
+      50% {
+        transform: translateY(-30px) translateX(20px) scale(1.02);
+      }
+
+      100% {
+        transform: translateY(0) translateX(0) scale(1);
+      }
+    }
+
+    /* ========== FOUNDER HERO ========== */
+    .section {
+      min-height: 100vh;
+      padding: calc(var(--nav-height) + 40px) 40px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 10;
+    }
+
+    .founder-hero {
+      display: grid;
+      grid-template-columns: 1fr 1.8fr;
+      gap: 60px;
+      max-width: var(--maxw);
+      margin: 0 auto;
+      align-items: center;
+    }
+
+    .avatar-large {
+      width: 280px;
+      height: 280px;
+      border-radius: 40px;
+      background: linear-gradient(135deg, #1a1a3a, #0b2b45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 100px;
+      color: var(--accent);
+      box-shadow: 0 30px 50px rgba(0, 0, 0, 0.7);
+      border: 2px solid rgba(249, 215, 28, 0.3);
+      overflow: hidden;
+    }
+
+    .avatar-large img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 40px;
+      transition: transform 0.4s var(--ease);
+    }
+
+    .founder-meta h1 {
+      font-size: 56px;
+      color: white;
+      margin-bottom: 10px;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    .founder-meta .title {
+      font-size: 22px;
+      color: var(--accent);
+      margin-bottom: 20px;
+      letter-spacing: 2px;
+    }
+
+    .founder-meta .bio {
+      font-size: 18px;
+      line-height: 1.7;
+      color: var(--muted);
+      margin-bottom: 30px;
+    }
+
+    .stats-grid {
+      display: flex;
+      gap: 40px;
+      margin-top: 30px;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 48px;
+      font-weight: 700;
+      color: var(--accent);
+      font-family: 'Space Grotesk';
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-top: 8px;
+    }
+
+    /* ========== TECH GRID ========== */
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 30px;
+      max-width: var(--maxw);
+      margin: 80px auto 40px;
+    }
+
+    .flip-card {
+      background: transparent;
+      width: 100%;
+      height: 340px;
+      cursor: none;
+      /* Let custom cursor handle it */
+      perspective: 1200px;
+      position: relative;
+    }
+
+    .flip-card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      -webkit-transform-style: preserve-3d;
+      transform-style: preserve-3d;
+    }
+
+    .flip-card:hover .flip-card-inner,
+    .flip-card.flipped .flip-card-inner {
+      -webkit-transform: rotateY(180deg);
+      transform: rotateY(180deg);
+    }
+
+    .flip-card-front,
+    .flip-card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: var(--radius);
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(10, 20, 50, 0.98), rgba(5, 10, 30, 0.95));
+      border: 1px solid rgba(249, 215, 28, 0.25);
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+    }
+
+    .flip-card-front {
+      align-items: center;
+      text-align: center;
+    }
+
+    .flip-card-front i {
+      font-size: 60px;
+      margin-bottom: 20px;
+    }
+
+    .flip-card-front h3 {
+      color: var(--accent);
+      font-size: 24px;
+      margin-bottom: 8px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+    }
+
+    .flip-card-front p {
+      color: #a0a8c0;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .flip-card-back {
+      -webkit-transform: rotateY(180deg);
+      transform: rotateY(180deg);
+      text-align: left;
+      justify-content: flex-start;
+      padding-top: 20px;
+    }
+
+    .flip-card-back h4 {
+      color: var(--accent);
+      font-size: 20px;
+      margin-bottom: 12px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+    }
+
+    .flip-card-back p {
+      color: #c0c8e0;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    /* ========== AWARDS SECTION ========== */
+    .awards-section {
+      max-width: var(--maxw);
+      margin: 80px auto;
+      padding: 0 40px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .awards-headline {
+      font-size: 42px;
+      color: var(--accent);
+      text-align: center;
+      margin-bottom: 60px;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    .awards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+    }
+
+    .award-card {
+      background: transparent;
+      width: 100%;
+      height: 300px;
+      perspective: 2000px;
+      cursor: none;
+      position: relative;
+    }
+
+    .award-card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.8s var(--ease);
+      -webkit-transform-style: preserve-3d;
+      transform-style: preserve-3d;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .award-card:hover .award-card-inner,
+    .award-card.flipped .award-card-inner {
+      -webkit-transform: rotateY(180deg);
+      transform: rotateY(180deg);
+    }
+
+    .award-card-front,
+    .award-card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      border-radius: 24px;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid rgba(249, 215, 28, 0.2);
+    }
+
+    .award-card-front {
+      background: linear-gradient(145deg, rgba(57, 117, 255, 0.2), rgba(5, 5, 26, 0.95));
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .award-card-back {
+      background: rgba(8, 16, 40, 0.98);
+      backdrop-filter: blur(16px);
+      -webkit-transform: rotateY(180deg);
+      transform: rotateY(180deg);
+      text-align: left;
+      justify-content: space-between;
+    }
+
+    .award-card-front h3 {
+      color: var(--accent);
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .award-card-front p {
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .award-card-back p {
+      color: #e0eaff;
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+
+    .avatar-large:hover img {
+      transform: scale(1.05);
+    }
+
+    .cert-link {
+      display: inline-block;
+      padding: 10px 20px;
+      background: linear-gradient(90deg, var(--accent), #ffcc2a);
+      color: #08102a;
+      font-weight: 600;
+      border-radius: 30px;
+      text-decoration: none;
+      font-size: 14px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      align-self: flex-start;
+      position: relative;
+      z-index: 20;
+      cursor: none;
+    }
+
+    .cert-link:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(249, 215, 28, 0.3);
+    }
+
+    .award-card-front.blue {
+      background: linear-gradient(145deg, #0a2a4a, #051020);
+    }
+
+    .award-card-front.purple {
+      background: linear-gradient(145deg, #2a1a4a, #080818);
+    }
+
+    .award-card-front.red {
+      background: linear-gradient(145deg, #4a1a2a, #100810);
+    }
+
+    /* ========== VISION CARD ========== */
+    .vision-card {
+      background: var(--card);
+      backdrop-filter: blur(12px);
+      border-radius: 24px;
+      padding: 40px;
+      max-width: 900px;
+      margin: 60px auto;
+      border: 1px solid rgba(249, 215, 28, 0.2);
+      text-align: center;
+      position: relative;
+      z-index: 10;
+    }
+
+    .vision-card h2 {
+      color: var(--accent);
+      font-size: 36px;
+      margin-bottom: 20px;
+    }
+
+    .vision-card p {
+      font-size: 18px;
+      line-height: 1.7;
+      color: var(--muted);
+    }
+
+    /* ========== FOOTER ========== */
+    footer {
+      padding: 40px;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.5);
+      position: relative;
+      z-index: 10;
+    }
+
+    /* ========== RESPONSIVE ========== */
+    @media (max-width:900px) {
+      .founder-hero {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+
+      .avatar-large {
+        margin: 0 auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="cursor-dot"></div>
+  <div class="cursor-outline"></div>
+  <div class="cursor-trail" id="trail-1"></div>
+  <div class="cursor-trail" id="trail-2"></div>
+  <div class="cursor-trail" id="trail-3"></div>
+
+  <!-- SCROLL PROGRESS -->
+  <div id="scroll-progress"
+    style="position:fixed;top:0;left:0;height:3px;z-index:9999;background:linear-gradient(90deg,#f9d71c,#ff6bba,#5ef6ff);width:0%;box-shadow:0 0 10px #f9d71c;">
+  </div>
+
+  <canvas id="starfield"></canvas>
+  <div class="nebula"></div>
+  <!-- PARALLAX LAYERS -->
+  <div class="parallax-layer"
+    style="position:fixed;z-index:2;pointer-events:none;will-change:transform;width:200px;height:200px;top:8%;left:2%;background:radial-gradient(circle at 30% 30%,rgba(57,117,255,0.22),transparent 70%);border-radius:50%;box-shadow:0 0 110px rgba(57,117,255,0.22);"
+    data-depth="0.08"></div>
+  <div class="parallax-layer"
+    style="position:fixed;z-index:2;pointer-events:none;will-change:transform;width:120px;height:120px;top:45%;right:3%;background:radial-gradient(circle at 40% 40%,rgba(249,215,28,0.18),transparent 70%);border-radius:50%;box-shadow:0 0 70px rgba(249,215,28,0.18);"
+    data-depth="0.15"></div>
+  <div class="parallax-layer"
+    style="position:fixed;z-index:2;pointer-events:none;will-change:transform;width:70px;height:70px;top:65%;left:8%;background:radial-gradient(circle at 30% 30%,rgba(200,200,255,0.12),transparent 70%);border-radius:35% 65% 70% 30%/30% 30% 70% 70%;animation:floatAst 25s infinite alternate;"
+    data-depth="0.25"></div>
+
+  <div class="topnav">
+    <div class="brand-left">
+      <div class="logo"
+        style="width:46px; height:46px; background: linear-gradient(135deg,#13213a,#081022); border-radius:10px; display:flex; align-items:center; justify-content:center;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+          <defs>
+            <linearGradient id="g" x1="0" x2="1">
+              <stop offset="0" stop-color="#f9d71c" />
+              <stop offset="1" stop-color="#ffd24a" />
+            </linearGradient>
+          </defs>
+          <path d="M12 2l1.902 4.856L19 8.18l-4 3.094.944 5.4L12 14.9 8.056 16.674 9 11.274 5 8.18l5.098-1.324L12 2z"
+            fill="url(#g)" />
+        </svg>
+      </div>
+      <div class="brand-title">CRYPTO AI</div>
+    </div>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="/what-we-think">What we think</a>
+      <a href="/who-we-are">Who we are</a>
+      <a href="/careers">Careers</a>
+      <a href="/founder" class="active">Founder</a>
+    </div>
+    <div class="nav-right">
+      <span>Search</span>
+      <span>India</span>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="founder-hero">
+      <div class="avatar-large">
+        <img src="/static/Gemini_Generated_Image_q71yq4q71yq4q71y.png" alt="Mohana Krishnan">
+      </div>
+      <div class="founder-meta">
+        <h1>Mohana Krishnan</h1>
+        <div class="title">Machine Learning Developer · AI & DS (2nd Year)</div>
+        <p class="bio">8x IIT finalist. Building production‑grade LLMs for algorithmic trading. Obsessed with latency,
+          Sharpe ratios, and democratizing hedge‑fund AI.</p>
+        <div class="stats-grid">
+          <div class="stat-item"><span class="stat-number" id="counter1">0</span>
+            <div class="stat-label">IIT Finalists</div>
+          </div>
+          <div class="stat-item"><span class="stat-number" id="counter2">0</span>
+            <div class="stat-label">Projects</div>
+          </div>
+          <div class="stat-item"><span class="stat-number" id="counter3">0</span>
+            <div class="stat-label">Collaborators</div>
+          </div>
+          <div class="stat-item"><span class="stat-number" id="counter4">0</span>
+            <div class="stat-label">Certifications</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div style="max-width: var(--maxw); margin: 0 auto; padding: 0 40px; position: relative; z-index: 10;">
+    <h2 style="color: var(--accent); font-size: 36px; text-align: center; margin-bottom: 40px;">⚡ Technical Arsenal</h2>
+    <div class="tech-grid" id="techGrid"></div>
+  </div>
+
+  <div class="awards-section">
+    <h2 class="awards-headline">🏆 Industry Certificates & Awards</h2>
+    <div class="awards-grid">
+      <div class="award-card blue">
+        <div class="award-card-inner">
+          <div class="award-card-front blue">
+            <h3>IIT Bombay</h3>
+            <p>AI Hackathon Finalist 2024</p>
+          </div>
+          <div class="award-card-back">
+            <p><strong>8x IIT finalist</strong> – e-Yantra Robotics, AI Hackathon. Top 10 team. Sponsored by IBM.
+              Certificate of Excellence.</p>
+            <a href="#" class="cert-link" target="_blank">View Certificate →</a>
+          </div>
+        </div>
+      </div>
+      <div class="award-card purple">
+        <div class="award-card-inner">
+          <div class="award-card-front purple">
+            <h3>IIT Madras</h3>
+            <p>Data Science Advanced</p>
+          </div>
+          <div class="award-card-back">
+            <p>8‑week intensive on applied ML & time series. Project: stock trend LSTM (92% accuracy). NPTEL Elite +
+              Silver medal.</p>
+            <a href="#" class="cert-link" target="_blank">View Certificate →</a>
+          </div>
+        </div>
+      </div>
+      <div class="award-card red">
+        <div class="award-card-inner">
+          <div class="award-card-front red">
+            <h3>IIT Jodhpur</h3>
+            <p>ML Summer School</p>
+          </div>
+          <div class="award-card-back">
+            <p>Selected among 200 students. YOLOv8, OpenCV, edge AI. Pedestrian detection system. Certificate of Merit.
+            </p>
+            <a href="#" class="cert-link" target="_blank">View Certificate →</a>
+          </div>
+        </div>
+      </div>
+      <div class="award-card blue">
+        <div class="award-card-inner">
+          <div class="award-card-front blue">
+            <h3>IIT Kanpur</h3>
+            <p>Deep Learning</p>
+          </div>
+          <div class="award-card-back">
+            <p>E‑Summit 2024 finalist, AI in healthcare. Sepsis prediction model (87% ROC‑AUC). Also certified: NIT
+              Trichy (Data Analytics).</p>
+            <a href="#" class="cert-link" target="_blank">View Certificate →</a>
+          </div>
+        </div>
+      </div>
+      <div class="award-card purple">
+        <div class="award-card-inner">
+          <div class="award-card-front purple">
+            <h3>NPTEL Elite</h3>
+            <p>Python for Data Science</p>
+          </div>
+          <div class="award-card-back">
+            <p>Top 5% in national exam. IIT Kharagpur certification. Awarded Elite + Silver medal.</p>
+            <a href="#" class="cert-link" target="_blank">View Certificate →</a>
+          </div>
+        </div>
+      </div>
+      <div class="award-card red">
+        <div class="award-card-inner">
+          <div class="award-card-front red">
+            <h3>NIT Trichy</h3>
+            <p>Data Analytics</p>
+          </div>
+          <div class="award-card-back">
+            <p>Workshop on Big Data Analytics. Developed a real‑time sentiment analysis dashboard. Recognized as
+              outstanding project.</p>
+            <a href="#" class="cert-link" target="_blank">View Certificate →</a>
+          </div>
+        </div>
+      </div>
+      <div class="award-card blue">
+        <div class="award-card-inner">
+          <div class="award-card-front blue">
+            <h3>IIT Hyderabad</h3>
+            <p>MLOps Bootcamp</p>
+          </div>
+          <div class="award-card-back">
+            <p>End‑to‑end ML pipeline using Kubeflow, MLflow, Docker. Deployed a credit scoring model with CI/CD.</p>
+            <a href="#" class="cert-link" target="_blank">View Certificate →</a>
+          </div>
+        </div>
+      </div>
+      <div class="award-card purple">
+        <div class="award-card-inner">
+          <div class="award-card-front purple">
+            <h3>Google Cloud</h3>
+            <p>Professional ML Engineer</p>
+          </div>
+          <div class="award-card-back">
+            <p>Certified in building, training, and deploying ML models on GCP. Specialized in Vertex AI and BigQuery
+              ML.</p>
+            <a href="#" class="cert-link" target="_blank">View Certificate →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="vision-card">
+    <h2>🔮 The Autonomous AI Broker</h2>
+    <p>My mission: build an open‑source, self‑learning AI that executes trades, manages risk, and adapts to regime
+      changes – with performance surpassing quantitative hedge funds. Currently training a 200M‑parameter transformer on
+      NASDAQ ITCH data. 92% Sharpe in simulation. Partnering with IIT Madras for 2028 live deployment.</p>
+  </div>
+
+  <footer>&copy; <span id="year"></span> Crypto AI — Mohana Krishnan</footer>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // ========== DYNAMIC TECH FLIP CARDS ==========
+      const techData = [
+        { icon: "🐍", title: "Python", subtitle: "Core Language", description: "7+ years building scalable ML pipelines, backtesting engines and high-performance financial data systems using NumPy, Pandas and Cython. Optimized for low latency." },
+        { icon: "🧠", title: "TensorFlow", subtitle: "Deep Learning Production", description: "Designed and deployed LSTM & Transformer architectures for time-series forecasting. Implemented distributed training and production inference systems." },
+        { icon: "🔥", title: "PyTorch", subtitle: "Research + Deployment", description: "Built custom attention layers, optimized TorchScript deployments and experimented with state-space models for high-frequency market prediction." },
+        { icon: "⚙️", title: "ML Engineering", subtitle: "End-to-End Pipelines", description: "Hyperparameter tuning, cross-validation, experiment tracking using MLflow & W&B. Specialized in financial modeling and alpha extraction." },
+        { icon: "🎨", title: "Frontend Systems", subtitle: "React • D3 • Three.js", description: "Built real-time trading dashboards, animated candlestick charts, portfolio heatmaps and performance analytics interfaces." },
+        { icon: "📊", title: "Data Science", subtitle: "Analytics & Explainability", description: "Feature engineering, PCA, clustering, SHAP explainability and alternative data modeling for systematic trading strategies." },
+        { icon: "📈", title: "Algorithmic Trading", subtitle: "HFT & Execution", description: "Developed automated strategies using Alpaca & IBKR APIs. Implemented TWAP, VWAP, market making and arbitrage systems." },
+        { icon: "🤖", title: "AI Broker", subtitle: "Autonomous Agent", description: "Developing an LLM-powered trading agent capable of reasoning over market microstructure and adapting via reinforcement learning." }
+      ];
+
+      const techGrid = document.getElementById("techGrid");
+
+      techData.forEach(tech => {
+        const card = document.createElement("div");
+        card.className = "flip-card";
+
+        card.innerHTML = `
+          <div class="flip-card-inner">
+            <div class="flip-card-front">
+              <i>${tech.icon}</i>
+              <h3>${tech.title}</h3>
+              <p>${tech.subtitle}</p>
+            </div>
+            <div class="flip-card-back">
+              <h4>${tech.title}</h4>
+              <p>${tech.description}</p>
+            </div>
+          </div>
+        `;
+        techGrid.appendChild(card);
+      });
+
+      // ========== FLIP CARD MOBILE LOGIC ==========
+      document.querySelectorAll('.flip-card, .award-card').forEach(card => {
+        card.addEventListener('click', function (e) {
+          if (e.target.closest('a')) return;
+          this.classList.toggle('flipped');
+        });
+      });
+
+      // ========== UPGRADED HARDWARE-ACCELERATED CURSOR ==========
+      const dot = document.querySelector('.cursor-dot');
+      const outline = document.querySelector('.cursor-outline');
+      const trails = document.querySelectorAll('.cursor-trail');
+
+      let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
+      let outlineX = mouseX, outlineY = mouseY;
+
+      // Store coordinates for each trailing dot
+      let trailCoords = Array.from({ length: trails.length }, () => ({ x: mouseX, y: mouseY }));
+      let hue = 45;
+
+      document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        // The dot tracks exactly with the mouse
+        dot.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0) translate(-50%, -50%)`;
+      });
+
+      function animateCursor() {
+        // Cycle colors by smoothly updating the CSS Variable at the root
+        hue = (hue + 0.6) % 360;
+        document.documentElement.style.setProperty('--c-hue', hue);
+
+        // Smooth physics (lerp) for the outline
+        outlineX += (mouseX - outlineX) * 0.15;
+        outlineY += (mouseY - outlineY) * 0.15;
+        outline.style.transform = `translate3d(${outlineX}px, ${outlineY}px, 0) translate(-50%, -50%)`;
+
+        // Smooth physics (lerp) for the trailing effects
+        let prevX = outlineX, prevY = outlineY;
+        trails.forEach((trail, index) => {
+          trailCoords[index].x += (prevX - trailCoords[index].x) * 0.3;
+          trailCoords[index].y += (prevY - trailCoords[index].y) * 0.3;
+
+          // Shrink the scale of the trails the further back they are
+          const scale = 1 - (index * 0.25);
+          trail.style.transform = `translate3d(${trailCoords[index].x}px, ${trailCoords[index].y}px, 0) translate(-50%, -50%) scale(${scale})`;
+
+          prevX = trailCoords[index].x;
+          prevY = trailCoords[index].y;
+        });
+
+        requestAnimationFrame(animateCursor);
+      }
+      animateCursor();
+
+      // Targeting Reticle Hover Effects
+      document.querySelectorAll('.flip-card, .award-card, a, button').forEach(el => {
+        el.addEventListener('mouseenter', () => outline.classList.add('cursor-hovering'));
+        el.addEventListener('mouseleave', () => outline.classList.remove('cursor-hovering'));
+      });
+
+      // ========== COUNTERS ==========
+      const counters = [
+        { el: document.getElementById('counter1'), target: 8 },
+        { el: document.getElementById('counter2'), target: 15 },
+        { el: document.getElementById('counter3'), target: 24 },
+        { el: document.getElementById('counter4'), target: 12 }
+      ];
+      counters.forEach(c => { c.current = 0; c.el.textContent = 0; });
+      function updateCounters() {
+        let allDone = true;
+        counters.forEach(c => {
+          if (c.current < c.target) {
+            allDone = false;
+            c.current += Math.ceil((c.target - c.current) * 0.1);
+            if (c.current > c.target) c.current = c.target;
+            c.el.textContent = c.current;
+          }
+        });
+        if (!allDone) requestAnimationFrame(updateCounters);
+      }
+      const observer = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) { updateCounters(); observer.disconnect(); }
+      }, { threshold: 0.3 });
+      observer.observe(document.querySelector('.founder-hero'));
+
+      // ========== YEAR ==========
+      document.getElementById('year').textContent = new Date().getFullYear();
+
+      // ========== SCROLL PROGRESS ==========
+      const prog = document.getElementById('scroll-progress');
+      window.addEventListener('scroll', () => { const s = document.documentElement.scrollTop; const h = document.documentElement.scrollHeight - document.documentElement.clientHeight; prog.style.width = (s / h * 100) + '%'; });
+
+      // ========== NAV SCROLLED STATE ==========
+      const nav = document.querySelector('.topnav');
+      window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 50));
+
+      // ========== PARALLAX (scroll + mouse) ==========
+      const pLayers = document.querySelectorAll('.parallax-layer');
+      let mpx = 0, mpy = 0;
+      document.addEventListener('mousemove', ev => { mpx = (ev.clientX / innerWidth - 0.5) * 30; mpy = (ev.clientY / innerHeight - 0.5) * 20; });
+      function updateP() { const st = window.pageYOffset; pLayers.forEach(el => { const d = parseFloat(el.getAttribute('data-depth') || 0.1); el.style.transform = `translate3d(${mpx * d * 2}px,${mpy * d * 2 - st * d}px,0)`; }); requestAnimationFrame(updateP); } updateP();
+
+      // ========== SCROLL REVEAL ==========
+      const revIO = new IntersectionObserver(entries => entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); revIO.unobserve(e.target); } }), { threshold: 0.1 });
+      document.querySelectorAll('.reveal,.tech-grid,.awards-section,.vision-card').forEach(el => { el.classList.add('reveal'); revIO.observe(el); });
+      // Immediately reveal already-visible elements
+      setTimeout(() => document.querySelectorAll('.section .founder-hero').forEach(el => { el.style.opacity = '1'; }), 100);
+    });
+
+    // ========== STARFIELD ==========
+    (function () {
+      const canvas = document.getElementById('starfield');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let stars = [];
+      let w = canvas.width = innerWidth, h = canvas.height = innerHeight;
+      const STAR_COUNT = Math.floor((w * h) / 9000);
+      function rand(min, max) { return Math.random() * (max - min) + min; }
+      function init() {
+        stars = [];
+        for (let i = 0; i < STAR_COUNT; i++) {
+          stars.push({
+            x: rand(0, w), y: rand(0, h), r: rand(0.4, 1.6),
+            vx: rand(-0.08, 0.08), vy: rand(0.2, 0.6),
+            twinkle: Math.random() * Math.PI * 2
+          });
+        }
+      }
+      function resize() { w = canvas.width = innerWidth; h = canvas.height = innerHeight; init(); }
+      addEventListener('resize', resize);
+      function draw() {
+        ctx.clearRect(0, 0, w, h);
+        const g = ctx.createLinearGradient(0, 0, 0, h);
+        g.addColorStop(0, 'rgba(10,10,30,0.1)'); g.addColorStop(1, 'rgba(0,0,0,0.2)');
+        ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+        for (let s of stars) {
+          s.x += s.vx; s.y += s.vy; s.twinkle += 0.05;
+          if (s.y > h + 20) { s.y = -10; s.x = rand(0, w); }
+          if (s.x < -20) s.x = w + 10; if (s.x > w + 20) s.x = -10;
+          const alpha = 0.4 + 0.6 * Math.sin(s.twinkle);
+          ctx.beginPath(); ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+          ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+      init();
+      function loop() { draw(); requestAnimationFrame(loop); } loop();
+    })();
+  </script>
+</body>
+
+</html>
