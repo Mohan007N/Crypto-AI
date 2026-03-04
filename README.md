@@ -1,4 +1,4 @@
-# 🌟 Sirus Star
+# 🌟 Crypto AI
 
 A modern corporate website built with **Flask**, featuring animated UI, contact and job application APIs, and Docker support.
 
@@ -133,4 +133,4 @@ SIRUS STAR/
 
 ## 📄 License
 
-© Sirus Star. All rights reserved.
+© Crypto AI. All rights reserved.
