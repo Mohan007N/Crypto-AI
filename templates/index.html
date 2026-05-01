@@ -46,7 +46,6 @@
       background: linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
       color: #e8eef8;
       overflow-x: hidden;
-      cursor: none;
       min-height: 100%;
     }
 
@@ -179,31 +178,7 @@
       }
     }
 
-    /* ══════════════════ CURSOR ══════════════════ */
-    .cursor-dot,
-    .cursor-outline {
-      position: fixed;
-      pointer-events: none;
-      z-index: 99999;
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-    }
 
-    .cursor-dot {
-      width: 8px;
-      height: 8px;
-      background: var(--accent);
-      box-shadow: 0 0 15px var(--accent);
-    }
-
-    .cursor-outline {
-      width: 40px;
-      height: 40px;
-      border: 2px solid rgba(249, 215, 28, 0.6);
-      transition: all 0.15s var(--ease);
-      box-shadow: 0 0 25px rgba(249, 215, 28, 0.3);
-      backdrop-filter: blur(2px);
-    }
 
     /* ══════════════════ STARFIELD / NEBULA ══════════════════ */
     #starfield {
@@ -578,7 +553,7 @@
       border-radius: 12px;
       border: none;
       font-weight: 600;
-      cursor: none;
+      cursor: pointer;
       transition: transform 0.2s var(--ease), box-shadow 0.2s;
       font-size: 15px;
       position: relative;
@@ -1009,7 +984,7 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      cursor: none;
+      cursor: pointer;
       padding: 0;
       font-size: 15px;
     }
@@ -1303,10 +1278,6 @@
     </div>
   </div>
 
-  <!-- CURSOR -->
-  <div class="cursor-dot"></div>
-  <div class="cursor-outline"></div>
-
   <!-- BACKGROUND -->
   <canvas id="starfield"></canvas>
   <div class="nebula"></div>
@@ -1340,10 +1311,9 @@
       <a href="/who-we-are">Who we are</a>
     </div>
     <div style="display:flex;gap:20px;color:var(--muted);font-size:14px;">
-      <a href="#" style="color:var(--muted);text-decoration:none;">LOGIN</a>
-      <a href="#contact" style="color:var(--muted);text-decoration:none;">SUPPORT</a>
-    </div>n>
+      <span>Search</span>
       <span>India</span>
+    </div>
     </div>
   </nav>
 
@@ -1571,24 +1541,6 @@
     document.addEventListener('DOMContentLoaded', function () {
       // ─── YEAR ───
       document.getElementById('year').textContent = new Date().getFullYear();
-
-      // ─── CURSOR ───
-      const dot = document.querySelector('.cursor-dot');
-      const outline = document.querySelector('.cursor-outline');
-      let mx = 0, my = 0, ox = 0, oy = 0, hue = 45;
-      document.addEventListener('mousemove', e => {
-        mx = e.clientX; my = e.clientY;
-        dot.style.left = mx + 'px'; dot.style.top = my + 'px';
-        hue = (hue + 0.6) % 360;
-        dot.style.background = `hsl(${hue},90%,60%)`;
-        dot.style.boxShadow = `0 0 15px hsl(${hue},90%,60%)`;
-        outline.style.borderColor = `hsla(${hue},80%,60%,0.6)`;
-      });
-      (function animCursor() { ox += (mx - ox) * 0.12; oy += (my - oy) * 0.12; outline.style.left = ox + 'px'; outline.style.top = oy + 'px'; requestAnimationFrame(animCursor); })();
-      document.querySelectorAll('a,button,.vm-card,.insight-card').forEach(el => {
-        el.addEventListener('mouseenter', () => { outline.style.transform = 'translate(-50%,-50%) scale(1.6)'; dot.style.transform = 'translate(-50%,-50%) scale(1.8)'; });
-        el.addEventListener('mouseleave', () => { outline.style.transform = 'translate(-50%,-50%) scale(1)'; dot.style.transform = 'translate(-50%,-50%) scale(1)'; });
-      });
 
       // ─── SCROLL PROGRESS ───
       const prog = document.getElementById('scroll-progress');

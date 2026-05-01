@@ -40,7 +40,6 @@
       background: linear-gradient(180deg, var(--bg-1), var(--bg-2));
       color: #e8eef8;
       overflow-x: hidden;
-      cursor: none;
     }
 
     #scroll-progress {
@@ -54,28 +53,7 @@
       box-shadow: 0 0 10px var(--accent);
     }
 
-    .cursor-dot,
-    .cursor-outline {
-      position: fixed;
-      pointer-events: none;
-      z-index: 99999;
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-    }
 
-    .cursor-dot {
-      width: 8px;
-      height: 8px;
-      background: var(--accent);
-      box-shadow: 0 0 15px var(--accent);
-    }
-
-    .cursor-outline {
-      width: 40px;
-      height: 40px;
-      border: 2px solid rgba(249, 215, 28, 0.6);
-      transition: all 0.15s var(--ease);
-    }
 
     #starfield {
       position: fixed;
@@ -444,7 +422,7 @@
       color: var(--muted);
       font-size: 15px;
       font-weight: 600;
-      cursor: none;
+      cursor: pointer;
       border-bottom: 2px solid transparent;
       transition: all 0.25s;
       margin-bottom: -1px;
@@ -648,8 +626,6 @@
 
 <body>
   <div id="scroll-progress"></div>
-  <div class="cursor-dot"></div>
-  <div class="cursor-outline"></div>
   <canvas id="starfield"></canvas>
   <div class="nebula"></div>
   <canvas id="neuralCanvas"></canvas>
@@ -818,11 +794,6 @@
     (function () { const c = document.getElementById('neuralCanvas'); const ctx = c.getContext('2d'); let w, h, nodes = []; function resize() { w = c.width = innerWidth; h = c.height = innerHeight; } resize(); addEventListener('resize', resize); for (let i = 0; i < 40; i++)nodes.push({ x: Math.random() * w, y: Math.random() * h, vx: (Math.random() - 0.5) * 0.5, vy: (Math.random() - 0.5) * 0.5, r: 1.5 + Math.random() * 3 }); function draw() { ctx.clearRect(0, 0, w, h); for (let i = 0; i < nodes.length; i++) { for (let j = i + 1; j < nodes.length; j++) { const dx = nodes[i].x - nodes[j].x, dy = nodes[i].y - nodes[j].y, dist = Math.sqrt(dx * dx + dy * dy); if (dist < 150) { ctx.beginPath(); ctx.moveTo(nodes[i].x, nodes[i].y); ctx.lineTo(nodes[j].x, nodes[j].y); ctx.strokeStyle = `rgba(249,215,28,${0.15 * (1 - dist / 150)})`; ctx.stroke(); } } ctx.beginPath(); ctx.arc(nodes[i].x, nodes[i].y, nodes[i].r, 0, Math.PI * 2); ctx.fillStyle = 'rgba(249,215,28,0.6)'; ctx.shadowColor = '#f9d71c'; ctx.shadowBlur = 8; ctx.fill(); ctx.shadowBlur = 0; } nodes.forEach(n => { n.x += n.vx; n.y += n.vy; if (n.x < 0 || n.x > w) n.vx *= -1; if (n.y < 0 || n.y > h) n.vy *= -1; }); requestAnimationFrame(draw); } draw(); })();
     document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('year').textContent = new Date().getFullYear();
-      const dot = document.querySelector('.cursor-dot'), outline = document.querySelector('.cursor-outline');
-      let mx = 0, my = 0, ox = 0, oy = 0, hue = 45;
-      document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; dot.style.left = mx + 'px'; dot.style.top = my + 'px'; hue = (hue + 0.6) % 360; dot.style.background = `hsl(${hue},90%,60%)`; dot.style.boxShadow = `0 0 15px hsl(${hue},90%,60%)`; outline.style.borderColor = `hsla(${hue},80%,60%,0.6)`; });
-      (function a() { ox += (mx - ox) * 0.12; oy += (my - oy) * 0.12; outline.style.left = ox + 'px'; outline.style.top = oy + 'px'; requestAnimationFrame(a); })();
-      document.querySelectorAll('a,button,.thought-card').forEach(el => { el.addEventListener('mouseenter', () => { outline.style.transform = 'translate(-50%,-50%) scale(1.6)'; dot.style.transform = 'translate(-50%,-50%) scale(1.8)'; }); el.addEventListener('mouseleave', () => { outline.style.transform = 'translate(-50%,-50%) scale(1)'; dot.style.transform = 'translate(-50%,-50%) scale(1)'; }); });
       const prog = document.getElementById('scroll-progress');
       window.addEventListener('scroll', () => { const s = document.documentElement.scrollTop; const h = document.documentElement.scrollHeight - document.documentElement.clientHeight; prog.style.width = (s / h * 100) + '%'; });
       const nav = document.getElementById('topnav'); window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 50));
